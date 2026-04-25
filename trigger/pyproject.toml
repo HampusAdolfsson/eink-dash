@@ -1,0 +1,7 @@
+[project]
+name = "trigger"
+version = "0.1.0"
+description = "Triggers eink display updates"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = []
