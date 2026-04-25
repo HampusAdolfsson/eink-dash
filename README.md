@@ -24,6 +24,12 @@ docker run -d --name eink-dash -v /path/to/config.json:/app/config.json eink-das
 Each step of the [pipeline](#pipeline) can be run independently for development
 and testing purposes. See the README files in the respective directories.
 
+The main entrypoint for the dashboard is `eink-dash.py`, which can be run directly for development:
+
+```bash
+uv run eink-dash.py
+```
+
 ## Pipeline
 
 The following pipeline is run to produce the final image on the e-ink display:
