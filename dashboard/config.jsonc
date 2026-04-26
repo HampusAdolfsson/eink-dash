@@ -1,0 +1,6 @@
+{
+    // strftime format string for the 'time' template variable.
+    "timeFormat": "%H:%M",
+    // strftime format string for the 'date' template variable.
+    "dateFormat": "%Y-%m-%d"
+}
