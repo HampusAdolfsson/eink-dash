@@ -1,12 +1,13 @@
 # eink-dash
 
 A home dashboard for e-ink displays, rendered using HTML and CSS with Jinja2 templates.
+Currently supports Waveshare 4-color e-ink displays.
 
 <!-- TODO: Add a screenshot -->
 
 ## Configuration
 
-See [config.json](./config.json) for an example configuration file. The
+See [config.jsonc](./config.jsonc) for an example configuration file. The
 dashboard itself is configured using HTML/CSS and Jinja2 templates, which can be
 found in the [dashboard](./dashboard) directory.
 
@@ -16,7 +17,7 @@ The project is deployed using Docker. To build and run the docker container, use
 
 ```bash
 docker build -t eink-dash .
-docker run -d --name eink-dash -v /path/to/config.json:/app/config.json eink-dash
+docker run -d --name eink-dash -v /path/to/config.jsonc:/app/config.jsonc eink-dash
 ```
 
 ## Development

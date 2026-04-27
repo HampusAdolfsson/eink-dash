@@ -1,0 +1,15 @@
+{
+    // The interval in seconds at which to re-render the dashboard to the display
+    "update_interval": 5,
+    // The width of the display in pixels
+    "display_width": 800,
+    // The height of the display in pixels
+    "display_height": 480,
+    // The colors available on the E-ink display. Currently only 4-color displays are supported.
+    "palette": [
+        "#000000",
+        "#ffffff",
+        "#ff0000",
+        "#ffff00"
+    ]
+}
