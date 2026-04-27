@@ -11,7 +11,7 @@ def main():
     args = parser.parse_args()
 
     while True:
-        print('{"message": "update"}')
+        print('{"message": "update"}', flush=True)
         time.sleep(args.interval)
 
 
