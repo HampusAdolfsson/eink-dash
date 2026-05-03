@@ -13,10 +13,10 @@ def normalize_path(path: str) -> str:
 
 
 watched_files = [
-    normalize_path("dashboard.html"),
+    normalize_path("web/dashboard.html"),
+    normalize_path("web/styles.css"),
     normalize_path("config.jsonc"),
     normalize_path("dashboard.py"),
-    normalize_path("styles.css"),
 ]
 
 
