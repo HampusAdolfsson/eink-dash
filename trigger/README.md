@@ -11,7 +11,6 @@ Run the module:
 uv run trigger.py --interval <seconds>
 ```
 Where `<seconds>` is the interval at which to trigger updates. The default is 60 seconds.
-```
 
 When triggered, the module will print a single line of JSON to the console:
 
