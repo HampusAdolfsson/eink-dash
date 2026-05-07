@@ -15,6 +15,8 @@ class Config:
     display_width: str
     display_height: str
     palette: [str]
+    mqtt_broker: str
+    mqtt_device_name: str
 
 
 def load_config() -> Config:
@@ -28,10 +30,12 @@ def load_config() -> Config:
     ):
         raise ValueError("Invalid palette in config.jsonc: must be a list of 4 strings")
     return Config(
-        update_interval=config_data["update_interval"],
+        update_interval=config_data["update"].get("interval", 0),
         display_width=config_data["display_width"],
         display_height=config_data["display_height"],
         palette=palette,
+        mqtt_broker=config_data["update"].get("mqtt_broker", ""),
+        mqtt_device_name=config_data["update"].get("mqtt_device_name", ""),
     )
 
 
@@ -112,15 +116,21 @@ if __name__ == "__main__":
         config = load_config()
     except Exception as e:
         print(colored(f"Error loading config.jsonc: {e}", "red"))
+        raise e
 
+    args = [
+        "uv",
+        "run",
+        os.path.join(os.path.dirname(__file__), "trigger/trigger.py"),
+    ]
+    if config.update_interval > 0:
+        args += ["--interval", str(config.update_interval)]
+    if config.mqtt_broker != "":
+        args += ["--mqtt-broker", config.mqtt_broker]
+    if config.mqtt_device_name != "":
+        args += ["--mqtt-device-name", config.mqtt_device_name]
     trigger_proc = subprocess.Popen(
-        [
-            "uv",
-            "run",
-            os.path.join(os.path.dirname(__file__), "trigger/trigger.py"),
-            "--interval",
-            str(config.update_interval),
-        ],
+        args,
         stdout=subprocess.PIPE,
     )
     try:

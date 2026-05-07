@@ -1,6 +1,15 @@
 {
-    // The interval in seconds at which to re-render the dashboard to the display
-    "update_interval": 5,
+    // Configuration for how/when to trigger updates to the dashboard.
+    "update": {
+        // The interval in minutes at which to re-render the dashboard to the display.
+        // Can be omitted to disable timed updates.
+        "interval": 15,
+        // The address of a Home Assistant MQTT broker to listen for update triggers.
+        // If specified, registers a button entity that can be used to trigger updates.
+        "mqtt_broker": "localhost",
+        // The device name to use for MQTT discovery
+        "mqtt_device_name": "E-ink Dashboard"
+    },
     // The width of the display in pixels
     "display_width": 800,
     // The height of the display in pixels

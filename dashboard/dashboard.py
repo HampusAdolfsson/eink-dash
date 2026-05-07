@@ -1,7 +1,7 @@
 import jinja2
 from dataclasses import dataclass
 import os
-import sys
+import open_meteo
 
 import json5 as json
 import datetime
@@ -16,10 +16,10 @@ import argparse
 
 @dataclass
 class Config:
-    time_format: str
-    date_format: str
-    output_path: str
+    lat: float
+    lon: float
 
+    output_path: str
     width: int
     height: int
 
@@ -42,14 +42,14 @@ def init_config() -> Config:
     try:
         with open(os.path.join(os.path.dirname(__file__), "config.jsonc")) as f:
             data = json.load(f)
-            time_format = data.get("timeFormat", "%H:%M")
-            date_format = data.get("dateFormat", "%Y-%m-%d")
+            lat = data["lat"]
+            lon = data["lon"]
     except Exception as e:
         raise RuntimeError(f"Error loading config.jsonc: {e}")
 
     return Config(
-        time_format=time_format,
-        date_format=date_format,
+        lat=lat,
+        lon=lon,
         output_path=args.output,
         width=args.width,
         height=args.height,
@@ -59,26 +59,113 @@ def init_config() -> Config:
 # ==== Jinja -> HTML ====
 
 
-def get_jinja_data(config: Config):
+async def get_jinja_data(config: Config):
     """Get the variables to use to render the Jinja template"""
 
     now = datetime.datetime.now()
 
+    async with open_meteo.OpenMeteo() as meteo:
+        forecast = await meteo.forecast(
+            latitude=config.lat,
+            longitude=config.lon,
+            current_weather=True,
+            daily=[
+                open_meteo.DailyParameters.SUNRISE,
+                open_meteo.DailyParameters.SUNSET,
+                open_meteo.DailyParameters.TEMPERATURE_2M_MAX,
+                open_meteo.DailyParameters.TEMPERATURE_2M_MIN,
+                open_meteo.DailyParameters.WEATHER_CODE,
+            ],
+            hourly=[
+                open_meteo.HourlyParameters.TEMPERATURE_2M,
+                open_meteo.HourlyParameters.PRECIPITATION,
+            ],
+        )
+
+        daily = []
+        for i in range(len(forecast.daily.time)):
+            daily.append(
+                {
+                    "date": forecast.daily.time[i],
+                    "temperature_max": forecast.daily.temperature_2m_max[i],
+                    "temperature_min": forecast.daily.temperature_2m_min[i],
+                    "weather_code": forecast.daily.weathercode[i],
+                    "sunrise": forecast.daily.sunrise[i],
+                    "sunset": forecast.daily.sunset[i],
+                }
+            )
+
+        hourly = []
+        for i in range(len(forecast.hourly.time)):
+            if forecast.hourly.time[i] < now:
+                continue
+            if forecast.hourly.time[i] > now + datetime.timedelta(hours=16):
+                break
+            hourly.append(
+                {
+                    "time": forecast.hourly.time[i],
+                    "temperature": forecast.hourly.temperature_2m[i],
+                    "precipitation": forecast.hourly.precipitation[i],
+                }
+            )
+
     return {
-        "time": now.strftime(config.time_format),
-        "date": now.strftime(config.date_format),
+        "now": now,
+        "weather": forecast.current_weather,
+        "forecast_daily": daily,
+        "forecast_hourly": hourly,
     }
 
 
-def render_jinja_to_html(config: Config):
+def weather_code_to_icon(kind: int) -> str:
+    """Convert a weather code to an icon filename"""
+
+    mapping = {
+        0: "sunny.png",
+        1: "sunny.png",
+        2: "partly_cloudy.png",
+        3: "cloudy.png",
+        45: "cloudy.png",
+        48: "cloudy.png",
+        51: "showers.png",
+        53: "showers.png",
+        55: "rain.png",
+        56: "showers.png",
+        57: "showers.png",
+        61: "showers.png",
+        63: "rain.png",
+        65: "rain.png",
+        66: "showers.png",
+        67: "rain.png",
+        71: "snow.png",
+        73: "snow.png",
+        75: "snow.png",
+        77: "snow.png",
+        80: "showers.png",
+        81: "showers.png",
+        82: "rain.png",
+        85: "snow.png",
+        86: "snow.png",
+        95: "thunderbolt.png",
+        96: "rain.png",
+        99: "rain.png",
+    }
+    if kind not in mapping:
+        print(f"Unknown weather kind: {kind}")
+
+    return "icons/" + mapping.get(kind, "unknown.png")
+
+
+async def render_jinja_to_html(config: Config):
 
     env = jinja2.Environment(
         loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), "web"))
     )
+    env.filters["weather_icon"] = weather_code_to_icon
 
     template = env.get_template("dashboard.html")
 
-    rendered = template.render(get_jinja_data(config))
+    rendered = template.render(await get_jinja_data(config))
     return rendered
 
 
@@ -113,6 +200,7 @@ def render_html_to_png(html: str, config: Config):
         f"--window-size={config.width},{config.height}",
         "--disable-gpu",
         "--no-sandbox",
+        "--hide-scrollbars",
     ]
     subprocess.run(args)
 
@@ -122,29 +210,31 @@ def render_html_to_png(html: str, config: Config):
 # ==== Main ====
 
 
-def main():
+async def main():
 
     try:
         config = init_config()
 
     except Exception as e:
         print(f"Configuration error: {e}")
-        sys.exit(1)
+        raise e
 
     try:
-        html = render_jinja_to_html(config)
+        html = await render_jinja_to_html(config)
 
     except Exception as e:
         print(f"Error rendering Jinja template: {e}")
-        sys.exit(1)
+        raise e
 
     try:
         render_html_to_png(html, config)
 
     except Exception as e:
         print(f"Error rendering HTML to PNG: {e}")
-        sys.exit(1)
+        raise e
 
 
 if __name__ == "__main__":
-    main()
+    import asyncio
+
+    asyncio.run(main())

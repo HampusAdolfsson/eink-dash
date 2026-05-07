@@ -1,6 +1,5 @@
 {
-    // strftime format string for the 'time' template variable.
-    "timeFormat": "%H:%M",
-    // strftime format string for the 'date' template variable.
-    "dateFormat": "%Y-%m-%d"
+    // Latitude and longitude for the location to fetch weather data for
+    "lat": 69.06,
+    "lon": 20.55
 }

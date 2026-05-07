@@ -43,3 +43,15 @@ graph LR
     D --> E[Render dithered PNG to e-ink display]
 
 ```
+
+## Attributions
+
+This project uses the [waveshare-epd library](https://github.com/waveshareteam/e-Paper) for interfacing with the e-ink display, which is released under the MIT License.
+
+### Icons
+
+* <a href="https://www.flaticon.com/free-icons/sun" title="sun icons">Sun icons created by DinosoftLabs - Flaticon</a>
+* <a href="https://www.flaticon.com/free-icons/sunset" title="sunset icons">Sunset icons created by Icon Hubs - Flaticon</a>
+* <a href="https://www.flaticon.com/packs/weather-560">Weather icons created by berkahicon - Flaticon</a>
+* <a href="https://www.magnific.com/author/photoono/icons/generic-flat_1807">Icons by ono_tono</a>
+<a href="https://www.flaticon.com/free-icons/weather" title="weather icons">Weather icons created by iconixar - Flaticon</a>

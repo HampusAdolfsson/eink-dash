@@ -1,3 +1,178 @@
+/* http://meyerweb.com/eric/tools/css/reset/
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+/* End of reset */
+
+
 html, body {
-    background-color: salmon;
+    background-color: white;
+	font-family: "Poetsen One", "Winky Rough", sans-serif;
+    height: 100%;
+}
+
+body {
+	display: grid;
+	grid-template-rows: 5fr 3fr;
+}
+
+#upper {
+	display: grid;
+	grid-template-columns: 2fr 3fr;
+
+	#hero {
+		display: grid;
+		grid-template-rows: 1fr fit-content;
+		padding: 30px;
+		#weekday {
+			font-size: 3.5em;
+		}
+		#date {
+			font-size: 1.5em;
+			color: #333333
+		}
+		#current-weather {
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			#current-temp {
+				font-size: 7em;
+				color: red;
+			}
+			#current-weather-icon {
+				width: 128px;
+				height: 128px;
+				margin-top: -20px;
+				margin-left: 20px;
+			}
+		}
+	}
+
+	#forecast {
+		display: grid;
+		grid-template-columns: 1fr 2fr;
+
+		#forecast-daily {
+			display: flex;
+			flex-direction: column;
+			/* display: grid; */
+			/* grid-template-columns: 1fr 1fr; */
+			align-items: center;
+			height: 100%;
+
+			.daily-item {
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				justify-content: center;
+				margin: 10px 0;
+			}
+
+			.day {
+				font-size: 1.7em;
+			}
+			.temp {
+				font-size: 1.1em;
+				color: red;
+			}
+
+			.icon {
+				width: 40px;
+				height: 40px;
+				margin: 0px 10px;
+			}
+		}
+
+		#forecast-misc {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+
+			> * {
+				margin: 10px 0;
+				font-size: 1.1em;
+			}
+
+			.icon {
+				width: 48px;
+				height: 48px;
+				vertical-align: middle;
+				margin-right: 5px;
+			}
+		}
+	}
+}
+
+#lower {
+
+	#forecast-hourly {
+		width: 100%;
+		height: 100%;
+	}
+
+	#electricity-price {
+		#value {
+			font-size: 3em;
+			color: #ff7700;
+		}
+	}
+
+}
+
+footer {
+    position: absolute;
+    bottom: 0;
+	right: 10px;
+    text-align: center;
+	font-size: 0.6em;
+}
+
+.section {
+    /* margin: 10px; */
+	padding: 20px;
 }

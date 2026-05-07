@@ -5,9 +5,181 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Ink Dashboard</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Literata:ital,opsz,wght@0,7..72,200..900;1,7..72,200..900&family=Playwrite+RO:wght@100..400&family=Poetsen+One&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Roboto:wght@100;300;400;500;700;900&family=Saira:ital,wght@0,100..900;1,100..900&family=Special+Gothic+Condensed+One&family=Winky+Rough:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h1>{{ title }}</h1>
-    <p>hello</p>
-</body>
+    <div id="upper">
+        <div id="hero" class="section">
+            <div>
+                <p id="weekday">
+                    {{ now.strftime("%A") }}
+                </p>
+                <p id="date">
+                    {{ now.strftime("%B %d") }}
+                </p>
+            </div>
+            <div id="current-weather">
+                <div id="current-temp">
+                    {{ weather.temperature | round | int }}°
+                </div>
+                <img id="current-weather-icon" src="{{ weather.weather_code | weather_icon }}"></img>
+            </div>
+        </div>
+        <div id="forecast">
+            <div id="forecast-misc" class="section">
+                {% set today = forecast_daily[0] %}
+                <div id="sunrise">
+                    <img class="icon" src="./icons/sunrise.png"></img>
+                    <span>{{ today.sunrise.strftime("%H:%M") }}</span>
+                </div>
+                <div id="sunset">
+                    <img class="icon" src="./icons/sunset.png"></img>
+                    <span>{{ today.sunset.strftime("%H:%M") }}</span>
+                </div>
+            </div>
+            <div id="forecast-daily" class="section">
+                {% for day in forecast_daily[1:5] %}
+                <div class="daily-item">
+                    <p class="day">{{ day.date.strftime("%a") }}</p>
+                    <img class="icon" src="{{ day.weather_code | weather_icon }}"></img>
+                    <p class="temp">{{ day.temperature_max | round | int }}° / {{ day.temperature_min | round | int }}°</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div id="lower">
+        <div id="forecast-hourly" ></div>
+        <!-- <div id="electricity-price" class="section"> -->
+        <!--     <span id="value">2.25</span> -->
+        <!--     <span id="unit">sek/kwh</span> -->
+        <!-- </div> -->
+    </div>
+    <footer>updated at {{ now.strftime("%h:%m") }}</footer>
+    <script>
+        window.onload = () => {
+            {% set showPrecipitation = forecast_hourly | map(attribute="precipitation") | max > 0 %}
+            const tempColor = "#ff2222";
+            const precipColor = "#ffff00";
+            const fontFamily = "Poetsen One";
+            const options = {
+                chart: {
+                    type: "area",
+                    stacked: false,
+                    animations: {
+                        enabled: false
+                    },
+                    toolbar: {
+                        show: false
+                    },
+                    height: "100%",
+                },
+                dataLabels: {
+                    enabledOnSeries: [0]
+                },
+                stroke: {
+                    curve: "smooth",
+                },
+                colors: [
+                    tempColor,
+                    precipColor
+                ],
+                series: [
+                    {
+                        name: "temperature",
+                        data: [
+                            {%for hour in forecast_hourly %}
+                            { y: {{ hour.temperature }}, x: "{{ hour.time.strftime("%H:%M") }}" },
+                            {% endfor %}
+                        ],
+                        unit: '°C'
+                    },
+                    {% if showPrecipitation %}
+                    {
+                        name: "precipitation",
+                        data: [
+                            {%for hour in forecast_hourly %}
+                            { y: {{ hour.precipitation }}, x: "{{ hour.time.strftime("%H:%M") }}" },
+                            {% endfor %}
+                        ],
+                        unit: 'mm'
+                    }
+                    {% endif %}
+                ],
+                animations: {
+                    enabled: false
+                },
+                plotOptions: {
+                    area: {
+                        fillTo: "end"
+                    }
+                },
+                xaxis: {
+                    labels: {
+                        style: {
+                            fontFamily: fontFamily,
+                        }
+                    },
+                    tickAmount: 6,
+                },
+                yaxis: [
+                    {
+                        min: min => Math.min(0, min),
+                        axisTicks: {
+                            show: true
+                        },
+                        axisBorder: {
+                            show: true,
+                            color: tempColor
+                        },
+                        labels: {
+                            style: {
+                                colors: tempColor,
+                                fontFamily: fontFamily,
+                                fontSize: "0.9em"
+                            },
+                            formatter: function (value) {
+                                return value + "°C";
+                            }
+                        },
+                    },
+                    {% if showPrecipitation %}
+                    {
+                        min: 0,
+                        opposite: true,
+                        axisTicks: {
+                            show: true
+                        },
+                        axisBorder: {
+                            show: true,
+                            color: precipColor
+                        },
+                        labels: {
+                            style: {
+                                colors: precipColor,
+                                fontFamily: fontFamily,
+                                fontSize: "0.9em"
+                            },
+                            formatter: function (value) {
+                                return value + "mm";
+                            }
+                        },
+                    }
+                    {% endif %}
+                ],
+                legend: {
+                    show: false,
+                }
+            }
+
+            const elem = document.querySelector("#forecast-hourly");
+            var chart = new ApexCharts(elem, options);
+
+            chart.render();
+        };
+    </script>
 </html>
