@@ -20,5 +20,20 @@
         "#ffffff",
         "#ff0000",
         "#ffff00"
-    ]
+    ],
+    "output": {
+        // Sets how to send the rendered dashboard to the display. Supported modes are:
+        // - "local": Use SPI on the local device to send the dashboard to the
+        //      display. Use this if running the main `eink-dash.py` script on
+        //      the same device as the display.
+        // - "network": Send the dashboard over the network to the
+        //      `driver/server.py` script running on the device connected to the
+        //      display. Use this if running the main `eink-dash.py` script on a
+        //      different device than the display.
+        "mode": "network",
+        // The address of the server to send the dashboard to when using "network" mode.
+        "host": "mypi.local",
+        // The port to send the dashboard to when using "network" mode (i.e. the port used to start the `driver/server.py` script).
+        "port": 80
+    }
 }

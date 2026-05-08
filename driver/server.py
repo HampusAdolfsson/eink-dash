@@ -28,7 +28,9 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
             if res.returncode != 0:
                 print("Failed to update display", file=sys.stderr)
                 self.send_error(500, "Failed to update display")
-            self.send_response_only(200)
+            else:
+                self.send_response(200, "OK")
+                self.end_headers()
 
 
 def main():
