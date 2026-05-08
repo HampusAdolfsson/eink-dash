@@ -59,7 +59,7 @@
         <!--     <span id="unit">sek/kwh</span> -->
         <!-- </div> -->
     </div>
-    <footer>updated at {{ now.strftime("%h:%m") }}</footer>
+    <footer>updated at {{ now.strftime("%H:%M") }}</footer>
     <script>
         window.onload = () => {
             {% set showPrecipitation = forecast_hourly | map(attribute="precipitation") | max > 0 %}
