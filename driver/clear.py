@@ -1,4 +1,3 @@
-from PIL import Image
 from waveshare_epd import epd7in5h
 
 
