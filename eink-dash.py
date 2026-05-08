@@ -17,6 +17,9 @@ class Config:
     palette: [str]
     mqtt_broker: str
     mqtt_device_name: str
+    output_mode: str
+    output_host: str
+    output_port: int
 
 
 def load_config() -> Config:
@@ -36,6 +39,9 @@ def load_config() -> Config:
         palette=palette,
         mqtt_broker=config_data["update"].get("mqtt_broker", ""),
         mqtt_device_name=config_data["update"].get("mqtt_device_name", ""),
+        output_mode=config_data["output"].get("mode", ""),
+        output_host=config_data["output"].get("host", ""),
+        output_port=config_data["output"].get("port", 0),
     )
 
 
@@ -87,8 +93,35 @@ def dither_image(input_path: str, output_path: str, palette: [str]):
         raise RuntimeError(f"Failed to dither image, exited with code {res.returncode}")
 
 
-def output_to_eink_display(image_path: str):
-    # not yet implemented
+def output_to_eink_display(config: Config, image_path: str):
+    if config.output_mode == "local":
+        res = subprocess.run(
+            [
+                "uv",
+                "run",
+                os.path.join(os.path.dirname(__file__), "driver/draw.py"),
+                image_path,
+            ]
+        )
+        if res.returncode != 0:
+            raise RuntimeError(
+                f"Failed to output to e-ink display, exited with code {res.returncode}"
+            )
+    elif config.output_mode == "network":
+        # The server script runs an HTTP server listening for PUT requests
+        url = f"http://{config.output_host}:{config.output_port}/"
+        import requests
+
+        res = requests.put(
+            url, data=open(image_path, "rb"), headers={"Content-Type": "image/png"}
+        )
+        if res.status_code != 200:
+            raise RuntimeError(
+                f"Failed to output to e-ink display, server responded with status code {res.status_code}"
+            )
+
+    else:
+        raise ValueError(f"Invalid output mode in config.jsonc: {config.output_mode}")
     pass
 
 
@@ -103,7 +136,7 @@ def render_dashboard(config: Config):
     dither_image(image_path, image_path, config.palette)
 
     print(colored("Outputting image to e-ink display...", "blue"))
-    output_to_eink_display(image_path)
+    output_to_eink_display(config, image_path)
 
     print(colored("Done refreshing dashboard!", "green"))
 
