@@ -62,8 +62,6 @@ def init_config() -> Config:
 async def get_jinja_data(config: Config):
     """Get the variables to use to render the Jinja template"""
 
-    now = datetime.datetime.now()
-
     async with open_meteo.OpenMeteo() as meteo:
         forecast = await meteo.forecast(
             latitude=config.lat,
@@ -82,6 +80,11 @@ async def get_jinja_data(config: Config):
             ],
         )
 
+        # Open-Meteo returns timezone-naive datetimes in UTC, so we
+        # need to convert them to local time.
+        def to_local_time(dt: datetime.datetime) -> datetime.datetime:
+            return dt.replace(tzinfo=datetime.UTC).astimezone()
+
         daily = []
         for i in range(len(forecast.daily.time)):
             daily.append(
@@ -90,27 +93,29 @@ async def get_jinja_data(config: Config):
                     "temperature_max": forecast.daily.temperature_2m_max[i],
                     "temperature_min": forecast.daily.temperature_2m_min[i],
                     "weather_code": forecast.daily.weathercode[i],
-                    "sunrise": forecast.daily.sunrise[i],
-                    "sunset": forecast.daily.sunset[i],
+                    "sunrise": to_local_time(forecast.daily.sunrise[i]),
+                    "sunset": to_local_time(forecast.daily.sunset[i]),
                 }
             )
 
         hourly = []
+        now = datetime.datetime.now(datetime.UTC)
         for i in range(len(forecast.hourly.time)):
-            if forecast.hourly.time[i] < now:
+            local_time = to_local_time(forecast.hourly.time[i])
+            if local_time < now:
                 continue
-            if forecast.hourly.time[i] > now + datetime.timedelta(hours=16):
+            if local_time > now + datetime.timedelta(hours=16):
                 break
             hourly.append(
                 {
-                    "time": forecast.hourly.time[i],
+                    "time": local_time,
                     "temperature": forecast.hourly.temperature_2m[i],
                     "precipitation": forecast.hourly.precipitation[i],
                 }
             )
 
     return {
-        "now": now,
+        "now": now.astimezone(),
         "weather": forecast.current_weather,
         "forecast_daily": daily,
         "forecast_hourly": hourly,
@@ -175,10 +180,13 @@ async def render_jinja_to_html(config: Config):
 def find_chromium_executable() -> str | None:
     """Find the path to the Chromium or Chrome executable"""
 
-    which = shutil.which("chrome")
+    candidates = ["chromium", "chromium-browser", "chrome"]
+    for candidate in candidates:
+        which = shutil.which(candidate)
+        if which is not None:
+            return which
 
-    if which is not None:
-        return which
+    return None
 
 
 def render_html_to_png(html: str, config: Config):
