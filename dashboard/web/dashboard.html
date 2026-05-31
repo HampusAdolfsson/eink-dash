@@ -93,7 +93,7 @@
                         name: "temperature",
                         data: [
                             {%for hour in forecast_hourly %}
-                            { y: {{ hour.temperature }}, x: "{{ hour.time.strftime("%H:%M") }}" },
+                            { y: {{ hour.temperature | round }}, x: "{{ hour.time.strftime("%H:%M") }}" },
                             {% endfor %}
                         ],
                         unit: '°C'
