@@ -5,6 +5,7 @@ import json5 as json
 import subprocess
 import tempfile
 import shutil
+import requests
 
 # ==== Configuration ====
 
@@ -110,7 +111,6 @@ def output_to_eink_display(config: Config, image_path: str):
     elif config.output_mode == "network":
         # The server script runs an HTTP server listening for PUT requests
         url = f"http://{config.output_host}:{config.output_port}/"
-        import requests
 
         res = requests.put(
             url, data=open(image_path, "rb"), headers={"Content-Type": "image/png"}

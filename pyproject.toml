@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14"
-dependencies = ["termcolor>=3.3.0"]
+dependencies = ["termcolor>=3.3.0", "requests"]
 
 [tool.uv.workspace]
 members = ["trigger", "dashboard", "driver"]
