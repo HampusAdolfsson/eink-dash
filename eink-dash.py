@@ -108,7 +108,7 @@ def output_to_eink_display(config: Config, image_path: str):
             raise RuntimeError(
                 f"Failed to output to e-ink display, exited with code {res.returncode}"
             )
-    elif config.output_mode == "network":
+    elif config.output_mode == "remote":
         # The server script runs an HTTP server listening for PUT requests
         url = f"http://{config.output_host}:{config.output_port}/"
 
