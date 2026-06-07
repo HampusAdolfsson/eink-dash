@@ -6,6 +6,11 @@
 
 *Currently supports Waveshare 4-color e-ink displays.*
 
+<table><tr>
+<td><img src="docs/screenshot.png" alt="Example dashboard" width="400"/></td>
+<td><img src="docs/photo.png" alt="Photo frame" width="400"/></td>
+</tr></table>
+
 </div>
 
 ## Overview
