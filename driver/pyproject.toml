@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14"
-dependencies = ["pillow", "Rpi.GPIO"]
+dependencies = ["pillow", "Rpi.GPIO", "spidev", "gpiozero"]
 
 [tool.ruff]
 exclude = ["waveshare_epd"]
