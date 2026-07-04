@@ -73,13 +73,14 @@ async def get_jinja_data(config: Config):
                 open_meteo.DailyParameters.TEMPERATURE_2M_MAX,
                 open_meteo.DailyParameters.TEMPERATURE_2M_MIN,
                 open_meteo.DailyParameters.WEATHER_CODE,
+                open_meteo.DailyParameters.PRECIPITATION_SUM,
             ],
             hourly=[
                 open_meteo.HourlyParameters.TEMPERATURE_2M,
                 open_meteo.HourlyParameters.PRECIPITATION,
+                open_meteo.HourlyParameters.WEATHER_CODE,
             ],
         )
-
         # Open-Meteo returns timezone-naive datetimes in UTC, so we
         # need to convert them to local time.
         def to_local_time(dt: datetime.datetime) -> datetime.datetime:
@@ -111,6 +112,7 @@ async def get_jinja_data(config: Config):
                     "time": local_time,
                     "temperature": forecast.hourly.temperature_2m[i],
                     "precipitation": forecast.hourly.precipitation[i],
+                    "weather_code": forecast.hourly.weather_code[i],
                 }
             )
 
@@ -119,6 +121,7 @@ async def get_jinja_data(config: Config):
         "weather": forecast.current_weather,
         "forecast_daily": daily,
         "forecast_hourly": hourly,
+        "precipitation_description": describe_precipitation(forecast.daily, forecast.hourly)
     }
 
 
@@ -159,6 +162,50 @@ def weather_code_to_icon(kind: int) -> str:
         print(f"Unknown weather kind: {kind}")
 
     return "icons/" + mapping.get(kind, "unknown.png")
+
+def precipitation_type(kind: int) -> str | None:
+    """Convert a weather code to a precipitation type name"""
+    if kind in [51, 53, 55, 61, 63, 65, 80, 81, 82]:
+        return "rain"
+    if kind in [71, 73, 75, 77, 85, 86]:
+        return "snow"
+    return None
+
+def kinds_to_precipitation(kinds: list[int]) -> set[str]:
+    """Convert a list of weather codes to a set of precipitation type names"""
+    precip_types: set[str] = set()
+    for code in kinds:
+        precip_type = precipitation_type(code)
+        if precip_type is not None:
+            precip_types.add(precip_type)
+    return precip_types
+
+def describe_precipitation(fdaily: open_meteo.DailyForecast, fhourly: open_meteo.HourlyForecast) -> str:
+    """ Describes today's precipitation in natural language """
+    if fdaily.precipitation_sum[0] == 0:
+        expected_precip_type = fdaily.temperature_2m_max[0] < 0 and "snow" or "rain"
+        return f"No {expected_precip_type} today!"
+
+    precip_types = kinds_to_precipitation(fhourly.weather_code).union(kinds_to_precipitation([fdaily.weathercode[0]]))
+    if len(precip_types) == 0:
+        print("Warning: precipitation sum is non-zero, but no precipitation types found in hourly or daily forecast.")
+        precip_types.add("rain")
+
+    MORNING_END = 12
+    AFTERNOON_END = 18
+
+    precip_times = []
+    day_end_idx = next((i for i, time in enumerate(fhourly.time) if time.date() > fhourly.time[0].date()), len(fhourly.time))
+    todays_precipitation = zip(fhourly.precipitation[:day_end_idx], fhourly.time[:day_end_idx])
+    if any(time.hour < MORNING_END and precip > 0 for precip, time in todays_precipitation):
+        precip_times.append("morning")
+    if any(time.hour >= MORNING_END and time.hour < AFTERNOON_END
+           and precip > 0 for precip, time in todays_precipitation):
+        precip_times.append("afternoon")
+    if any(time.hour >= AFTERNOON_END and precip > 0 for precip, time in todays_precipitation):
+        precip_times.append("evening")
+
+    return f"{fdaily.precipitation_sum[0]} mm of {"/".join(precip_types)} today ({", ".join(precip_times)})."
 
 
 async def render_jinja_to_html(config: Config):

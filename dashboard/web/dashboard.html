@@ -14,7 +14,7 @@
 <body>
     <div id="upper">
         <div id="hero" class="section">
-            <div>
+            <div id="date-info">
                 <p id="weekday">
                     {{ now.strftime("%A") }}
                 </p>
@@ -28,158 +28,28 @@
                 </div>
                 <img id="current-weather-icon" src="{{ weather.weather_code | weather_icon }}"></img>
             </div>
-        </div>
-        <div id="forecast">
-            <div id="forecast-misc" class="section">
-                {% set today = forecast_daily[0] %}
-                <div id="sunrise">
-                    <img class="icon" src="./icons/sunrise.png"></img>
-                    <span>{{ today.sunrise.strftime("%H:%M") }}</span>
-                </div>
-                <div id="sunset">
-                    <img class="icon" src="./icons/sunset.png"></img>
-                    <span>{{ today.sunset.strftime("%H:%M") }}</span>
-                </div>
+            <div>
+                HI: {{ forecast_daily[0].temperature_max }}° / LO: {{ forecast_daily[0].temperature_min }}°
             </div>
-            <div id="forecast-daily" class="section">
-                {% for day in forecast_daily[1:5] %}
-                <div class="daily-item">
+        </div>
+        <div id="forecast-hourly" class="section">
+            <p>
+                {{ precipitation_description }}
+            </p>
+        </div>
+    </div>
+    <div id="lower">
+        <div id="forecast">
+            <div id="forecast-daily">
+                {% for day in forecast_daily[1:7] %}
+                <!-- <div class="daily-item"> -->
                     <p class="day">{{ day.date.strftime("%a") }}</p>
                     <img class="icon" src="{{ day.weather_code | weather_icon }}"></img>
-                    <p class="temp">{{ day.temperature_max | round | int }}° / {{ day.temperature_min | round | int }}°</p>
-                </div>
+                    <p class="temp">{{ day.temperature_max | round | int }}°</p>
+                <!-- </div> -->
                 {% endfor %}
             </div>
         </div>
     </div>
-    <div id="lower">
-        <div id="forecast-hourly" ></div>
-        <!-- <div id="electricity-price" class="section"> -->
-        <!--     <span id="value">2.25</span> -->
-        <!--     <span id="unit">sek/kwh</span> -->
-        <!-- </div> -->
-    </div>
     <footer>updated at {{ now.strftime("%H:%M") }}</footer>
-    <script>
-        window.onload = () => {
-            {% set showPrecipitation = forecast_hourly | map(attribute="precipitation") | max > 0 %}
-            const tempColor = "#ff2222";
-            const precipColor = "#ffff00";
-            const fontFamily = "Poetsen One";
-            const options = {
-                chart: {
-                    type: "area",
-                    stacked: false,
-                    animations: {
-                        enabled: false
-                    },
-                    toolbar: {
-                        show: false
-                    },
-                    height: "100%",
-                },
-                dataLabels: {
-                    enabledOnSeries: [0]
-                },
-                stroke: {
-                    curve: "smooth",
-                },
-                colors: [
-                    tempColor,
-                    precipColor
-                ],
-                series: [
-                    {
-                        name: "temperature",
-                        data: [
-                            {%for hour in forecast_hourly %}
-                            { y: {{ hour.temperature | round }}, x: "{{ hour.time.strftime("%H:%M") }}" },
-                            {% endfor %}
-                        ],
-                        unit: '°C'
-                    },
-                    {% if showPrecipitation %}
-                    {
-                        name: "precipitation",
-                        data: [
-                            {%for hour in forecast_hourly %}
-                            { y: {{ hour.precipitation }}, x: "{{ hour.time.strftime("%H:%M") }}" },
-                            {% endfor %}
-                        ],
-                        unit: 'mm'
-                    }
-                    {% endif %}
-                ],
-                animations: {
-                    enabled: false
-                },
-                plotOptions: {
-                    area: {
-                        fillTo: "end"
-                    }
-                },
-                xaxis: {
-                    labels: {
-                        style: {
-                            fontFamily: fontFamily,
-                        }
-                    },
-                    tickAmount: 6,
-                },
-                yaxis: [
-                    {
-                        min: min => Math.min(0, min),
-                        axisTicks: {
-                            show: true
-                        },
-                        axisBorder: {
-                            show: true,
-                            color: tempColor
-                        },
-                        labels: {
-                            style: {
-                                colors: tempColor,
-                                fontFamily: fontFamily,
-                                fontSize: "0.9em"
-                            },
-                            formatter: function (value) {
-                                return value + "°C";
-                            }
-                        },
-                    },
-                    {% if showPrecipitation %}
-                    {
-                        min: 0,
-                        opposite: true,
-                        axisTicks: {
-                            show: true
-                        },
-                        axisBorder: {
-                            show: true,
-                            color: precipColor
-                        },
-                        labels: {
-                            style: {
-                                colors: precipColor,
-                                fontFamily: fontFamily,
-                                fontSize: "0.9em"
-                            },
-                            formatter: function (value) {
-                                return value + "mm";
-                            }
-                        },
-                    }
-                    {% endif %}
-                ],
-                legend: {
-                    show: false,
-                }
-            }
-
-            const elem = document.querySelector("#forecast-hourly");
-            var chart = new ApexCharts(elem, options);
-
-            chart.render();
-        };
-    </script>
 </html>
