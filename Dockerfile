@@ -16,6 +16,9 @@ RUN apk add --no-cache chromium
 # Install tzdata for timezone support
 RUN apk add --no-cache tzdata
 
+# Override DNS to use public resolver (Adguard has issues with IPv6 AAAA lookups)
+RUN echo "nameserver 1.1.1.1" > /etc/resolv.conf
+
 # Copy project files
 COPY --from=builder /app/dithers/target/release/dithers /usr/local/bin/dithers
 RUN chmod +x /usr/local/bin/dithers

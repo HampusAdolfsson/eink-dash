@@ -36,6 +36,7 @@ use Jinja templating syntax. The following variables are available in the Jinja 
     - `time`: The time of the forecast (a `datetime`)
     - `temperature`: The temperature at that time
     - `precipitation`: The precipitation at that time
+- `precipitation_description`: A natural language string describing today's precipitation
 
 The following custom filters are also available:
 
